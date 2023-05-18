@@ -1,0 +1,344 @@
+#:kivy 1.0
+
+# Common rule to make all labels and buttons font size 20 pixels.  This
+# always be overridden if desired.
+#==============================================================================
+<Label>
+    font_size: 20
+<ToggleButton>
+    font_size: 20
+<Segment>
+    scale: 0.50
+    value: "0"
+    size_hint: 0.4, 0.95
+    shadow: 0.25
+    color: 0, 1., 0
+
+#:import Factory kivy.factory.Factory
+
+<MyPopup@Popup>:
+    #auto_dismiss: False
+    title: 'Temperature Charting Popup'
+    size_hint: None, None
+    size: 400, 400
+    TextInput:
+        text: "Eject Delay:"
+    #Button:
+    #    text: 'Close me!'
+    #    on_release: root.dismiss()
+
+
+# The main window is setup on a FloatLayout.
+#==============================================================================
+<MainWindow>:
+
+    # The temperature display and setpoint display in a 2x2 GridLayout.
+    #==========================================================================
+    GridLayout:
+        size_hint: 0.6, 0.4
+        pos_hint: { 'x':0.0, 'y':0.6 }
+        cols:1
+        padding: '75dp', '25dp', 0, 0
+        #canvas.before:
+        #    Color:
+        #        rgba: 0.15, 0.15, 0.15, 1
+        #    Rectangle:
+        #        size: self.size
+        #        pos: self.pos
+        #==========================================================================
+        StackLayout:
+            size_hint: None, None
+            width: '250dp'
+            height: '150dp'
+            pos_hint: { 'x':0.1, 'y':0.1 }
+            #pos_hint: None, None
+            #pos: 10, 50
+            padding: '10dp', '0dp', '5dp', '7dp'
+            canvas.before:
+                Color:
+                    rgb: 0, 0.1, 0
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            Segment:
+                id: seg1
+            Segment:
+                value: "0."
+                id: seg2
+            Segment:
+                scale: 0.25
+                size_hint_x: 0.2
+                id: seg3
+
+#        Label:
+#            text: "Temp:"
+#            font_size: 20
+#            size_hint_x: None
+#            width: 80
+#        # This is the current temperature label.
+#        Label:
+#            #text: u"[b]{:d}\u00b0C".format( root.tempSensor ) 
+#            text: u"[b]33\u00b0C"
+#            markup: True
+#            font_size: 100
+#            color: root.tempLblColor
+#            id: tempLbl
+#        Label:
+#            text: "SetPt:"
+#            font_size: 20
+#            size_hint_x: None
+#            #width: 100
+#        # This is the setpoint label.
+#        Label:
+#            markup: True
+#            text: '[ref=sp]' + u"[b]{}\u00b0C".format( int(root.tempSetPt) ) + '[/ref]'
+#            font_size: 70
+#            on_ref_press: print "Temp Touch"
+
+    # This Grid displays the up / down buttons to adjust temperature.
+    #==========================================================================
+#    GridLayout:
+#        size_hint: 0.2, 0.4
+#        pos_hint: { 'x':0.5, 'y':0.6 }
+#        cols: 1
+#        padding: 15
+#        Label:
+#            text: "Adjust\nTemperature"
+#            halign: "center"
+#        Button:
+#           text: "Up"
+#           #on_press: root.adjTempUp()
+#            on_press: root.tempSetPt += root.setptStep
+#        Button:
+#            text: "Down"
+#            #on_press: root.adjTempDown()
+#            on_press: root.tempSetPt -= root.setptStep
+
+    # This Grid shows the heater output stuff.
+    #==========================================================================
+#    GridLayout:
+#        cols: 1
+#        size_hint: 0.3, 0.4
+#        pos_hint: { 'x':0.7, 'y':0.6 }
+#        padding: 20, 10
+#        #canvas.before:
+#        Label:
+#            text: "Heater Band\nOutput"
+#            halign: 'center'
+#        BoxLayout:
+#            Label:
+#                text: "Output En:"
+#            Switch:
+#                active: False 	# Default Value
+#                #on_active: root.heaterEnable( self )
+#                id: heaterEn
+#        BoxLayout:
+#            Label:
+#                text: "Output:"
+#            Label:
+#                text: "{}%".format( int( root.heaterOut ) )
+#                font_size: 50
+#                id: heaterOutLbl
+
+    # Total cycle time adjustment.
+    #==========================================================================
+    GridLayout:
+        cols: 1
+        size_hint: 0.5, 0.4
+        pos_hint: { 'x':0.0, 'y':0.20 }
+        padding: 20, 10
+        Label:
+            text: "Total Cycle Time: " + root.cycleTmText( cycTm.value )
+        Label:
+            text: 'Mold Close Time: {}s'.format( cycTm.value )
+        Slider:
+            min: 0.5
+            max: root.maxTime
+            value: 20
+            step: root.timeStep
+            id: cycTm
+            on_value: if cycTm.value < injTm.value: injTm.value = cycTm.value
+        Label:
+            #text: "Injection Time: " + '{}s'.format(injTm.value)
+            text: "Injection Time: " + root.injTmText( injTm.value )
+        Slider:
+            min: 0.5
+            max: root.maxTime
+            value: 15.0
+            step: root.timeStep
+            #on_value: root.on_cycleTm( self )
+            id: injTm
+            on_value: if cycTm.value < injTm.value: cycTm.value = injTm.value
+
+    # Inject cycle time adjustment.
+    #==========================================================================
+    #GridLayout:
+    #    cols: 1
+    #    size_hint: 0.5, 0.3
+    #    pos_hint: { 'x':0.0, 'y':0.0 }
+    #    padding: 20, 10
+
+    # Display IO Status
+    #==========================================================================
+    GridLayout:
+        cols: 1
+        size_hint: 0.25, 0.4
+        pos_hint: { 'x':0.5, 'y':0.2 }
+        padding: 5, 10
+        Label:
+            text: "Time"
+            font_size: 30
+            color: 1, 0, 1, 1
+            id: timeLbl
+        BoxLayout:
+            Label:
+                text: "Heater:"
+                halign: 'left'
+            Switch:
+                active: False
+                disabled: False
+                #on_active: root.heaterManControl( self )
+                id: heaterOut
+        BoxLayout:
+            Label:
+                text: "Close Sol:"
+                halign: 'left'
+                padding_x: 0
+            Switch:
+                active: False
+                disabled: root.abortDisabled
+                #on_active: root.closeSol( self )
+                id: closeSol
+        BoxLayout:
+            Label:
+                text: "Inj Sol:"
+                halign: 'left'
+            Switch:
+                active: False
+                disabled: root.abortDisabled
+                #on_active: root.injSol( self )
+                id: injSol
+
+    # Display Timers
+    #==========================================================================
+    GridLayout:
+        cols: 1
+        size_hint: 0.25, 0.6
+        pos_hint: { 'x':0.75, 'y':0.2 }
+        padding: 5, 10
+        BoxLayout:
+            Label:
+                text: "Cycle Tm:"
+            Label:
+                text: "{:.1f}s".format( root.timer )
+                id: timer
+        BoxLayout:
+            Label:
+                text: "Part Cnt:"
+            Label:
+                text: "0"
+                id: partCount
+        BoxLayout:
+            Label:
+                text: "Total Cnt:"
+            Label:
+                text: str( root.totalCount )
+                id: partCountTotal
+        BoxLayout:
+            Label:
+                text: "Part Det:"
+                halign: 'left'
+            Switch:
+                active: True
+                disabled: False
+                id: partDetLbl
+        BoxLayout:
+            Label:
+                text: "Dble Eject:"
+                halign: 'left'
+            Switch:
+                disabled: False
+                id: partDbleEjectLbl
+        BoxLayout:
+            Label:
+                text: "Dble Inject:"
+                halign: 'left'
+            Switch:
+                disabled: False
+                id: partDbleInjectLbl
+
+
+
+    # Display Auto Start & Abort Buttons
+    #==========================================================================
+    GridLayout:
+        cols: 2
+        padding: 15
+        spacing: 15
+        size_hint: 0.5, 0.2
+        pos_hint: { 'x':0.5, 'y':0.0 }
+        padding: 20, 10
+        ToggleButton:
+            markup: True
+            text: "[b]Cycle\nAbort[/b]"
+            color: 1, 0, 0, 1		# Text Color
+            halign: 'center'
+            state: 'down'
+            id: abortCycle
+            on_press: root.cycleAbort( abortCycle.state )
+            #group: 'enableCycle'
+        ToggleButton:
+            text: "Cycle\nStart / Enable"
+            halign: 'center'
+            disabled: (root.abortDisabled or root.autoStop)
+            state: 'normal'
+            id: cycleStart
+            on_press: root.enableStart( cycleStart.state )
+            
+
+    # Progress Bar overlay on Cycle Timer slider.
+    #==========================================================================
+    GridLayout:
+        cols: 1
+        size_hint: 0.46, 0.3
+        pos_hint: { 'x':0.02, 'y':0.25 }
+        padding: 20, 10
+        ProgressBar:
+            max: root.maxTime
+            min: 0.5
+            value: root.timer
+
+
+    # Three buttons in bottom left corner.
+    #==========================================================================
+    GridLayout:
+    	cols: 3
+    	size_hint: 0.5, 0.2
+        pos_hint: { 'x':0.0, 'y':0.0 }
+        padding: 35, 15, 15, 15
+        spacing: 15
+        Button:
+        	size_hint_x: None
+        	width: 100
+        	halign: 'center'
+        	text: "Save\nSettings"
+            on_press: root.saveSettings()
+        Button:
+        	size_hint_x: None
+        	width: 100
+        	halign: 'center'
+        	text: "Chart\nTemp"
+        	#on_press: root.chartTemp()
+            #on_press: Factory.MyPopup().open()
+            on_press: root.testCode()
+        Button:
+        	size_hint_x: None
+        	width: 100
+        	halign: 'center'
+        	text: "Close\nApp"
+        	#on_press: app.get_running_app().stop()
+        	on_press: root.closeApp()
+
+
+
+
